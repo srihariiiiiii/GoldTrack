@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="GoldTrack - Track live Gold and Silver prices"
+    >
+
+    <meta
+        name="theme-color"
+        content="#080808"
+    >
+
+    <title>
+        GoldTrack - Live Gold & Silver Prices
+    </title>
+
+    <!-- ==================================================
+         CSS
+    =================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- ==================================================
+         3D BACKGROUND
+    =================================================== -->
+
+    <div
+        class="three-d-background"
+        aria-hidden="true"
+    >
+
+        <!-- Gold Coin -->
+
+        <div class="coin coin-gold">
+
+            <div class="coin-edge"></div>
+
+            <div class="coin-face">
+
+                <span class="coin-symbol">
+                    Au
+                </span>
+
+                <span class="coin-text">
+                    GOLD
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Silver Coin -->
+
+        <div class="coin coin-silver">
+
+            <div class="coin-edge"></div>
+
+            <div class="coin-face">
+
+                <span class="coin-symbol">
+                    Ag
+                </span>
+
+                <span class="coin-text">
+                    SILVER
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Floating Particles -->
+
+        <div class="particle particle-1"></div>
+
+        <div class="particle particle-2"></div>
+
+        <div class="particle particle-3"></div>
+
+        <div class="particle particle-4"></div>
+
+        <div class="particle particle-5"></div>
+
+        <div class="particle particle-6"></div>
+
+        <div class="particle particle-7"></div>
+
+        <div class="particle particle-8"></div>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         HEADER
+    =================================================== -->
+
+    <header class="site-header">
+
+        <div class="header-content">
+
+            <div class="logo-area">
+
+                <div class="logo-coin">
+                    🪙
+                </div>
+
+                <div>
+
+                    <h1>
+                        GoldTrack
+                    </h1>
+
+                    <p>
+                        Track Live Gold & Silver Prices
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ==================================================
+         MAIN
+    =================================================== -->
+
+    <main class="container">
+
+
+        <!-- ==================================================
+             GOLD CARD
+        =================================================== -->
+
+        <section
+            class="card gold-card"
+        >
+
+            <div class="card-title">
+
+                <h2>
+                    🥇 Gold Prices
+                </h2>
+
+                <span class="live-badge">
+                    ● LIVE
+                </span>
+
+            </div>
+
+
+            <!-- 24K -->
+
+            <div class="price-box">
+
+                <h3>
+                    24K Gold Price
+                </h3>
+
+                <p id="gold24">
+                    Loading...
+                </p>
+
+            </div>
+
+
+            <!-- 22K -->
+
+            <div class="price-box">
+
+                <h3>
+                    22K Gold Price
+                </h3>
+
+                <p id="gold22">
+                    Loading...
+                </p>
+
+            </div>
+
+
+            <!-- 18K -->
+
+            <div class="price-box">
+
+                <h3>
+                    18K Gold Price
+                </h3>
+
+                <p id="gold18">
+                    Loading...
+                </p>
+
+            </div>
+
+
+            <!-- Gold Trend -->
+
+            <p
+                id="gold-trend"
+                class="trend same"
+            >
+                ⏳ Waiting for next update...
+            </p>
+
+
+            <!-- Gold Button -->
+
+            <button
+                id="gold-btn"
+                type="button"
+            >
+                🔄 Refresh Gold Price
+            </button>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             SILVER CARD
+        =================================================== -->
+
+        <section
+            class="card silver-card"
+        >
+
+            <div class="card-title">
+
+                <h2>
+                    🥈 Silver Price
+                </h2>
+
+                <span class="live-badge silver-live">
+                    ● LIVE
+                </span>
+
+            </div>
+
+
+            <!-- Silver -->
+
+            <div class="price-box">
+
+                <h3>
+                    Silver Price
+                </h3>
+
+                <p id="silver-price">
+                    Loading...
+                </p>
+
+            </div>
+
+
+            <!-- Silver Trend -->
+
+            <p
+                id="silver-trend"
+                class="trend same"
+            >
+                ⏳ Waiting for next update...
+            </p>
+
+
+            <!-- Silver Button -->
+
+            <button
+                id="silver-btn"
+                type="button"
+            >
+                🔄 Refresh Silver Price
+            </button>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             PRICE TREND CHART
+        =================================================== -->
+
+        <section
+            class="card chart-card"
+        >
+
+            <div class="chart-header">
+
+                <div>
+
+                    <h2>
+                        📈 Price Trend
+                    </h2>
+
+                    <p>
+                        Last 10 price updates
+                    </p>
+
+                </div>
+
+                <div class="chart-status">
+                    ● Live Movement
+                </div>
+
+            </div>
+
+
+            <!-- Chart Container -->
+
+            <div class="chart-container">
+
+                <canvas
+                    id="priceChart"
+                ></canvas>
+
+
+                <!-- Hover Tooltip -->
+
+                <div
+                    id="chart-tooltip"
+                    class="chart-tooltip"
+                ></div>
+
+            </div>
+
+
+            <!-- Chart Legend -->
+
+            <div class="chart-legend">
+
+                <span class="gold-legend">
+                    <i></i>
+                    Gold
+                </span>
+
+                <span class="silver-legend">
+                    <i></i>
+                    Silver
+                </span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             GOLD CALCULATOR
+        =================================================== -->
+
+        <section
+            class="card calculator-card"
+        >
+
+            <div class="calculator-header">
+
+                <h2>
+                    🧮 Gold Calculator
+                </h2>
+
+                <p>
+                    Calculate estimated gold value
+                </p>
+
+            </div>
+
+
+            <!-- Weight -->
+
+            <div class="form-group">
+
+                <label
+                    for="gold-weight"
+                >
+                    Weight (grams)
+                </label>
+
+                <input
+                    type="number"
+                    id="gold-weight"
+                    placeholder="Enter weight"
+                    min="0"
+                    step="0.01"
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <!-- Gold Type -->
+
+            <div class="form-group">
+
+                <label
+                    for="gold-type"
+                >
+                    Gold Type
+                </label>
+
+                <select
+                    id="gold-type"
+                >
+
+                    <option value="24">
+                        24K Gold
+                    </option>
+
+                    <option value="22">
+                        22K Gold
+                    </option>
+
+                    <option value="18">
+                        18K Gold
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Calculate -->
+
+            <button
+                id="calculate-btn"
+                type="button"
+            >
+                🧮 Calculate Price
+            </button>
+
+
+            <!-- Result -->
+
+            <div class="calculator-result">
+
+                <h3>
+                    Estimated Price
+                </h3>
+
+                <p id="calculated-price">
+                    ₹ 0.00
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             STATUS
+        =================================================== -->
+
+        <section
+            class="card status-card"
+        >
+
+            <div class="status-icon">
+                📊
+            </div>
+
+            <div>
+
+                <h3>
+                    Status
+                </h3>
+
+                <p id="last-updated">
+                    Last Updated: --
+                </p>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- ==================================================
+         FOOTER
+    =================================================== -->
+
+    <footer class="site-footer">
+
+        <p>
+            © 2026 GoldTrack. All Rights Reserved.
+        </p>
+
+        <p class="footer-subtitle">
+            Live market tracking dashboard
+        </p>
+
+    </footer>
+
+
+
+    <!-- ==================================================
+         JAVASCRIPT
+    =================================================== -->
+
+    <script
+        src="js/script.js"
+    ></script>
+
+
+</body>
+
+</html>

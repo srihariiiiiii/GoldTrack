@@ -1,0 +1,940 @@
+/* ========================================
+   GOLDTRACK - PREMIUM AESTHETIC UI
+======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #f5f5f5;
+    background:
+        radial-gradient(
+            circle at top,
+            #302712 0%,
+            #17130c 35%,
+            #0b0b0b 75%
+        );
+    min-height: 100vh;
+}
+
+
+/* ========================================
+   HEADER
+======================================== */
+
+header {
+    padding: 55px 20px 45px;
+    text-align: center;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(212, 175, 55, 0.20),
+            rgba(0, 0, 0, 0.15)
+        );
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #fff1a8,
+            #d4af37,
+            #fff1a8
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+header p {
+    margin: 12px 0 0;
+    color: #bdbdbd;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+
+/* ========================================
+   MAIN
+======================================== */
+
+main {
+    width: min(1050px, 92%);
+    margin: 40px auto;
+}
+
+
+/* ========================================
+   CARD
+======================================== */
+
+.card {
+    position: relative;
+
+    margin-bottom: 25px;
+    padding: 28px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.025)
+        );
+
+    border: 1px solid rgba(212, 175, 55, 0.18);
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    backdrop-filter: blur(14px);
+
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+
+    border-color:
+        rgba(212, 175, 55, 0.42);
+
+    box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.45),
+        0 0 25px rgba(212, 175, 55, 0.06);
+}
+
+.card h2 {
+    margin-top: 0;
+    margin-bottom: 22px;
+
+    font-size: 23px;
+    color: #f5d76e;
+}
+
+
+/* ========================================
+   GOLD / SILVER PRICE BOX
+======================================== */
+
+.price-box {
+    margin: 14px 0;
+    padding: 18px 20px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+
+    transition: 0.3s ease;
+}
+
+.price-box:hover {
+    background:
+        rgba(212, 175, 55, 0.08);
+
+    border-color:
+        rgba(212, 175, 55, 0.25);
+
+    transform: translateX(4px);
+}
+
+.price-box h3 {
+    margin: 0 0 8px;
+
+    color: #aaa;
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.price-box p {
+    margin: 0;
+
+    color: #f8df7b;
+
+    font-size: 25px;
+    font-weight: 750;
+
+    letter-spacing: 0.3px;
+}
+
+
+/* ========================================
+   TREND
+======================================== */
+
+.trend {
+    margin: 18px 0;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    padding: 10px 14px;
+
+    border-radius: 10px;
+
+    display: inline-block;
+}
+
+.trend.same {
+    color: #cfcfcf;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.trend.up {
+    color: #6ee7a0;
+    background: rgba(34, 197, 94, 0.10);
+}
+
+.trend.down {
+    color: #ff7777;
+    background: rgba(239, 68, 68, 0.10);
+}
+
+
+/* ========================================
+   BUTTON
+======================================== */
+
+button {
+    width: 100%;
+
+    margin-top: 10px;
+
+    padding: 13px 18px;
+
+    border: none;
+    border-radius: 12px;
+
+    color: #17120a;
+
+    background:
+        linear-gradient(
+            135deg,
+            #f7df82,
+            #d4af37
+        );
+
+    font-size: 15px;
+    font-weight: 750;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 7px 20px rgba(212, 175, 55, 0.16);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.08);
+
+    box-shadow:
+        0 10px 28px rgba(212, 175, 55, 0.25);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+
+/* ========================================
+   PRICE TREND
+======================================== */
+
+.chart-card {
+    overflow: hidden;
+}
+
+.chart-subtitle {
+    margin-top: -12px;
+    margin-bottom: 20px;
+
+    color: #8f8f8f;
+
+    font-size: 13px;
+}
+
+.chart-container {
+    position: relative;
+
+    width: 100%;
+    height: 350px;
+
+    padding: 10px;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(0, 0, 0, 0.25),
+            rgba(255, 255, 255, 0.025)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#priceChart {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+}
+
+
+/* ========================================
+   CALCULATOR
+======================================== */
+
+.calculator-card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(212, 175, 55, 0.09),
+            rgba(255, 255, 255, 0.025)
+        );
+}
+
+.calculator-card label {
+    display: block;
+
+    margin: 16px 0 8px;
+
+    color: #c5c5c5;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.calculator-card input,
+.calculator-card select {
+    width: 100%;
+
+    padding: 14px 15px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    border-radius: 12px;
+
+    outline: none;
+
+    color: #fff;
+
+    background:
+        rgba(0, 0, 0, 0.25);
+
+    font-size: 15px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.calculator-card input::placeholder {
+    color: #777;
+}
+
+.calculator-card input:focus,
+.calculator-card select:focus {
+    border-color: #d4af37;
+
+    box-shadow:
+        0 0 0 3px rgba(212, 175, 55, 0.10);
+}
+
+.calculator-card select option {
+    color: #111;
+    background: #fff;
+}
+
+
+/* ========================================
+   CALCULATOR RESULT
+======================================== */
+
+.calculator-result {
+    margin-top: 25px;
+
+    padding: 22px;
+
+    text-align: center;
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(212, 175, 55, 0.13),
+            rgba(255, 255, 255, 0.035)
+        );
+
+    border: 1px solid rgba(212, 175, 55, 0.20);
+}
+
+.calculator-result h3 {
+    margin: 0 0 10px;
+
+    color: #aaa;
+
+    font-size: 14px;
+}
+
+#calculated-price {
+    margin: 0;
+
+    color: #f7dc6f;
+
+    font-size: 31px;
+    font-weight: 800;
+}
+
+
+/* ========================================
+   STATUS
+======================================== */
+
+.status-card {
+    text-align: center;
+}
+
+.status-card h3 {
+    margin-top: 0;
+
+    color: #f5d76e;
+}
+
+#last-updated {
+    margin-bottom: 0;
+
+    color: #999;
+
+    font-size: 14px;
+}
+
+
+/* ========================================
+   FOOTER
+======================================== */
+
+footer {
+    margin-top: 50px;
+
+    padding: 25px 20px;
+
+    text-align: center;
+
+    border-top:
+        1px solid rgba(255, 255, 255, 0.07);
+
+    background:
+        rgba(0, 0, 0, 0.25);
+
+    color: #777;
+
+    font-size: 13px;
+}
+
+footer p {
+    margin: 0;
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 700px) {
+
+    header {
+        padding: 40px 15px 35px;
+    }
+
+    header h1 {
+        font-size: 32px;
+    }
+
+    header p {
+        font-size: 14px;
+    }
+
+    main {
+        width: 94%;
+        margin: 25px auto;
+    }
+
+    .card {
+        padding: 20px;
+
+        border-radius: 18px;
+    }
+
+    .card h2 {
+        font-size: 20px;
+    }
+
+    .price-box p {
+        font-size: 21px;
+    }
+
+    .chart-container {
+        height: 280px;
+
+        padding: 5px;
+    }
+
+    #calculated-price {
+        font-size: 26px;
+    }
+}
+
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (max-width: 420px) {
+
+    header h1 {
+        font-size: 28px;
+    }
+
+    .card {
+        padding: 17px;
+    }
+
+    .price-box {
+        padding: 15px;
+    }
+
+    .price-box p {
+        font-size: 19px;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+
+}
+.chart-card {
+    margin-top: 25px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 320px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+#priceChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.chart-container {
+    width: 100%;
+    height: 320px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+#priceChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+/* =====================================================
+   3D GOLD & SILVER BACKGROUND
+===================================================== */
+
+.three-d-background {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+    perspective: 1000px;
+}
+
+/* Keep all actual website content above 3D background */
+
+.site-header,
+.container,
+.site-footer {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* =====================================================
+   3D COINS
+===================================================== */
+
+.coin {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transform-style: preserve-3d;
+
+    animation:
+        coinFloat 5s ease-in-out infinite,
+        coinRotate 8s linear infinite;
+
+    opacity: 0.75;
+}
+
+
+/* GOLD */
+
+.coin-gold {
+    top: 150px;
+    left: 7%;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #fff4a3 0%,
+            #ffd84d 25%,
+            #dca900 55%,
+            #8f6200 100%
+        );
+
+    border: 5px solid #ffd84d;
+
+    box-shadow:
+        0 0 15px #ffd84d,
+        0 0 35px rgba(255, 210, 50, 0.7),
+        0 0 70px rgba(255, 190, 0, 0.35);
+}
+
+
+/* SILVER */
+
+.coin-silver {
+    right: 7%;
+    bottom: 160px;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #ffffff 0%,
+            #e7e7e7 30%,
+            #a9a9a9 65%,
+            #656565 100%
+        );
+
+    border: 5px solid #eeeeee;
+
+    box-shadow:
+        0 0 15px #ffffff,
+        0 0 35px rgba(220, 220, 220, 0.7),
+        0 0 70px rgba(255, 255, 255, 0.3);
+
+    animation-delay: -2s;
+}
+
+
+/* Coin face */
+
+.coin-face {
+    width: 82px;
+    height: 82px;
+
+    border-radius: 50%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid rgba(255, 255, 255, 0.5);
+
+    transform: translateZ(8px);
+
+    background: rgba(0, 0, 0, 0.08);
+
+    text-align: center;
+}
+
+
+/* Coin symbols */
+
+.coin-symbol {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.coin-text {
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+
+/* Gold text */
+
+.coin-gold .coin-symbol {
+    color: #fff5a6;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 15px #ffd700;
+}
+
+.coin-gold .coin-text {
+    color: #fff0a0;
+}
+
+
+/* Silver text */
+
+.coin-silver .coin-symbol {
+    color: #ffffff;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 15px #ddd;
+}
+
+.coin-silver .coin-text {
+    color: #ffffff;
+}
+
+
+/* =====================================================
+   3D COIN ROTATION
+===================================================== */
+
+@keyframes coinRotate {
+
+    0% {
+        transform:
+            rotateY(0deg)
+            rotateX(5deg);
+    }
+
+    50% {
+        transform:
+            rotateY(180deg)
+            rotateX(-5deg);
+    }
+
+    100% {
+        transform:
+            rotateY(360deg)
+            rotateX(5deg);
+    }
+
+}
+
+
+@keyframes coinFloat {
+
+    0%,
+    100% {
+        margin-top: 0;
+    }
+
+    50% {
+        margin-top: -25px;
+    }
+
+}
+
+
+/* =====================================================
+   FLOATING PARTICLES
+===================================================== */
+
+.particle {
+    position: absolute;
+
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    animation:
+        particleFloat 6s ease-in-out infinite;
+
+    opacity: 0.7;
+}
+
+
+/* Gold particles */
+
+.particle-1,
+.particle-3,
+.particle-5,
+.particle-7 {
+    background: #ffd84d;
+
+    box-shadow:
+        0 0 8px #ffd84d,
+        0 0 18px #ffd84d;
+}
+
+
+/* Silver particles */
+
+.particle-2,
+.particle-4,
+.particle-6,
+.particle-8 {
+    background: #ffffff;
+
+    box-shadow:
+        0 0 8px #ffffff,
+        0 0 18px #ffffff;
+}
+
+
+/* Particle positions */
+
+.particle-1 {
+    left: 20%;
+    top: 25%;
+}
+
+.particle-2 {
+    left: 75%;
+    top: 30%;
+}
+
+.particle-3 {
+    left: 15%;
+    top: 65%;
+}
+
+.particle-4 {
+    left: 85%;
+    top: 60%;
+}
+
+.particle-5 {
+    left: 40%;
+    top: 15%;
+}
+
+.particle-6 {
+    left: 60%;
+    top: 80%;
+}
+
+.particle-7 {
+    left: 30%;
+    top: 85%;
+}
+
+.particle-8 {
+    left: 70%;
+    top: 15%;
+}
+
+
+/* Particle animation */
+
+@keyframes particleFloat {
+
+    0% {
+        transform:
+            translateY(0)
+            scale(1);
+
+        opacity: 0.3;
+    }
+
+    50% {
+        transform:
+            translateY(-35px)
+            scale(1.5);
+
+        opacity: 1;
+    }
+
+    100% {
+        transform:
+            translateY(0)
+            scale(1);
+
+        opacity: 0.3;
+    }
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .coin {
+        width: 75px;
+        height: 75px;
+    }
+
+    .coin-face {
+        width: 56px;
+        height: 56px;
+    }
+
+    .coin-symbol {
+        font-size: 22px;
+    }
+
+    .coin-text {
+        font-size: 7px;
+    }
+
+    .coin-gold {
+        left: 3%;
+        top: 120px;
+    }
+
+    .coin-silver {
+        right: 3%;
+        bottom: 100px;
+    }
+
+}
