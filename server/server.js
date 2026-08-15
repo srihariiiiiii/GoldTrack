@@ -12,7 +12,10 @@ app.use(express.json());
    FRONTEND
 ========================================= */
 
-const CLIENT_PATH = path.join(__dirname, "../client");
+// Works both locally and on Render/cloud servers
+const CLIENT_PATH = path.resolve(process.cwd(), "client");
+
+console.log("📁 Serving client from:", CLIENT_PATH);
 
 app.use(express.static(CLIENT_PATH));
 

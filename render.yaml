@@ -2,8 +2,9 @@ services:
   - type: web
     name: goldtrack
     runtime: node
+    rootDir: .
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node server/server.js
     envVars:
       - key: NODE_ENV
         value: production
