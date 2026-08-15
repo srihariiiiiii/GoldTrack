@@ -30,7 +30,8 @@ console.log("📁 CLIENT_PATH exists:", fs.existsSync(CLIENT_PATH));
 app.use(express.static(CLIENT_PATH));
 
 // Serve index.html for root and all unmatched routes (SPA support)
-app.get("*", (req, res) => {
+// Note: app.use() is used instead of app.get("*") — Express 5 dropped bare wildcard support
+app.use((req, res) => {
     const indexPath = path.join(CLIENT_PATH, "index.html");
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
