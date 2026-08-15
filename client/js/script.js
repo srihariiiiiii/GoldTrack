@@ -1,695 +1,524 @@
-// ======================================================
-// GOLDTRACK - COMPLETE SCRIPT.JS
-// ======================================================
+/* =========================================================
+   GOLDTRACK 3D - COMPLETE SCRIPT
+   ========================================================= */
 
-const API_URL = "http://localhost:5000/api/prices";
+/* =========================
+   BACKEND CONFIGURATION
+========================= */
 
-const USD_TO_INR = 87;
+const BACKEND_API_URL = "http://localhost:5000/api/prices";
+
 const OUNCE_TO_GRAM = 31.1035;
 
-const GOLD_22K = 0.916;
-const GOLD_18K = 0.750;
+// Default USD → INR conversion.
+// Change this if your backend later provides live currency conversion.
+const USD_TO_INR_DEFAULT = 87;
+
+
+/* =========================
+   GOLD PURITY
+========================= */
+
+const PURITY_MAP = {
+    "24": 1.000,
+    "22": 0.916,
+    "18": 0.750
+};
+
+
+/* =========================
+   PRICE VARIABLES
+========================= */
+
+let goldPriceUSD = 0;
+let silverPriceUSD = 0;
+
+let goldPriceINRPerGram24K = 0;
+let goldPriceINRPerGram22K = 0;
+let goldPriceINRPerGram18K = 0;
+
+let silverPriceINRPerGram = 0;
+let silverPriceINRPerKg = 0;
+
+
+/* =========================
+   PREVIOUS PRICE
+========================= */
+
+let previousGoldPrice = 0;
+let previousSilverPrice = 0;
+
+
+/* =========================
+   FETCH STATUS
+========================= */
+
+let isFetching = false;
+
+
+/* =========================
+   PRICE HISTORY
+========================= */
+
+const priceHistory = [];
 
 const MAX_HISTORY = 10;
 
-let previousGoldPrice = null;
-let previousSilverPrice = null;
 
-let goldPricePerGram = 0;
-let silverPricePerGram = 0;
+/* =========================
+   DOM ELEMENTS
+========================= */
 
-let priceHistory = [];
-
-let chartAnimation = null;
-
-
-// ======================================================
-// DOM ELEMENTS
-// ======================================================
-
+// Gold
 const gold24Element = document.getElementById("gold24");
 const gold22Element = document.getElementById("gold22");
 const gold18Element = document.getElementById("gold18");
 
-const silverElement =
+// Silver
+const silverPriceElement =
     document.getElementById("silver-price");
 
-const goldTrend =
+// Trend
+const goldTrendElement =
     document.getElementById("gold-trend");
 
-const silverTrend =
+const silverTrendElement =
     document.getElementById("silver-trend");
 
-const lastUpdated =
-    document.getElementById("last-updated");
-
+// Buttons
 const goldButton =
     document.getElementById("gold-btn");
 
 const silverButton =
     document.getElementById("silver-btn");
 
+// Status
+const lastUpdatedElement =
+    document.getElementById("last-updated");
+
+// Calculator
+const weightElement =
+    document.getElementById("gold-weight");
+
+const goldTypeElement =
+    document.getElementById("gold-type");
+
 const calculateButton =
     document.getElementById("calculate-btn");
 
-const weightInput =
-    document.getElementById("gold-weight");
-
-const goldType =
-    document.getElementById("gold-type");
-
-const calculatedPrice =
+const calculatedPriceElement =
     document.getElementById("calculated-price");
 
+// Chart
+const priceChartCanvas =
+    document.getElementById("priceChart");
 
-// ======================================================
-// FORMAT CURRENCY
-// ======================================================
+const chartTooltip =
+    document.getElementById("chart-tooltip");
 
-function formatINR(value) {
 
-    return "₹ " +
-        Number(value).toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) +
-        " / gram";
+/* =========================================================
+   HELPER FUNCTIONS
+========================================================= */
+
+
+/* =========================
+   FORMAT RUPEE
+========================= */
+
+function formatRupee(value) {
+
+    if (!Number.isFinite(value)) {
+        return "₹ 0.00";
+    }
+
+    return "₹ " + value.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 
-// ======================================================
-// GOLD PRICE CONVERSION
-// ======================================================
+/* =========================
+   FORMAT NUMBER
+========================= */
 
-function convertGoldPrice(priceUSD) {
+function formatNumber(value) {
 
-    return (
-        priceUSD *
-        USD_TO_INR
-    ) / OUNCE_TO_GRAM;
+    if (!Number.isFinite(value)) {
+        return "0.00";
+    }
 
+    return value.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 
-// ======================================================
-// SILVER PRICE CONVERSION
-// ======================================================
+/* =========================
+   UPDATE STATUS
+========================= */
 
-function convertSilverPrice(priceUSD) {
+function updateStatus(message) {
 
-    return (
-        priceUSD *
-        USD_TO_INR
-    ) / OUNCE_TO_GRAM;
-
+    if (lastUpdatedElement) {
+        lastUpdatedElement.textContent = message;
+    }
 }
 
 
-// ======================================================
-// TREND
-// ======================================================
+/* =========================
+   SET TREND TEXT
+========================= */
 
-function updateTrend(
-    current,
-    previous,
-    element,
-    name
-) {
+function setTrend(element, percentage) {
 
-    if (!element) return;
+    if (!element) {
+        return;
+    }
 
-    if (previous === null) {
+    if (!Number.isFinite(percentage)) {
 
         element.textContent =
-            "🟢 Live price updated";
+            "⏳ Waiting for next update...";
 
-        element.className =
-            "trend up";
+        element.className = "trend same";
 
         return;
     }
 
-    if (current > previous) {
+
+    if (percentage > 0) {
 
         element.textContent =
-            `🟢 ${name} price increased`;
+            `🟢 +${percentage.toFixed(2)}%`;
 
-        element.className =
-            "trend up";
+        element.className = "trend up";
 
-    }
-    else if (current < previous) {
+    } else if (percentage < 0) {
 
         element.textContent =
-            `🔴 ${name} price decreased`;
+            `🔴 ${percentage.toFixed(2)}%`;
 
-        element.className =
-            "trend down";
+        element.className = "trend down";
 
-    }
-    else {
+    } else {
 
         element.textContent =
-            `➖ ${name} price unchanged`;
+            "⚪ 0.00%";
 
-        element.className =
-            "trend same";
-
+        element.className = "trend same";
     }
-
 }
 
 
-// ======================================================
-// ADD HISTORY
-// ======================================================
+/* =========================================================
+   RENDER PRICE UI
+========================================================= */
 
-function addHistory(
-    gold,
-    silver
+function renderPriceUI() {
+
+    /* ---------- GOLD ---------- */
+
+    if (gold24Element) {
+
+        gold24Element.textContent =
+            goldPriceINRPerGram24K > 0
+                ? `${formatRupee(goldPriceINRPerGram24K)} / gram`
+                : "Loading...";
+    }
+
+
+    if (gold22Element) {
+
+        gold22Element.textContent =
+            goldPriceINRPerGram22K > 0
+                ? `${formatRupee(goldPriceINRPerGram22K)} / gram`
+                : "Loading...";
+    }
+
+
+    if (gold18Element) {
+
+        gold18Element.textContent =
+            goldPriceINRPerGram18K > 0
+                ? `${formatRupee(goldPriceINRPerGram18K)} / gram`
+                : "Loading...";
+    }
+
+
+    /* ---------- SILVER ---------- */
+
+    if (silverPriceElement) {
+
+        silverPriceElement.textContent =
+            silverPriceINRPerGram > 0
+                ? `${formatRupee(silverPriceINRPerGram)} / gram`
+                : "Loading...";
+    }
+
+
+    /* ---------- OPTIONAL NEW UI ELEMENTS ---------- */
+
+    const silverKgElement =
+        document.getElementById("silver-kg");
+
+    if (silverKgElement) {
+
+        silverKgElement.textContent =
+            silverPriceINRPerKg > 0
+                ? formatRupee(silverPriceINPerKg)
+                : formatRupee(silverPriceINPerKg);
+    }
+
+
+    // Alternative IDs for newer GoldTrack 3D design
+
+    const gold24New =
+        document.getElementById("gold-24-price");
+
+    if (gold24New) {
+        gold24New.textContent =
+            formatRupee(goldPriceINRPerGram24K);
+    }
+
+
+    const gold22New =
+        document.getElementById("gold-22-price");
+
+    if (gold22New) {
+        gold22New.textContent =
+            formatRupee(goldPriceINRPerGram22K);
+    }
+
+
+    const gold18New =
+        document.getElementById("gold-18-price");
+
+    if (gold18New) {
+        gold18New.textContent =
+            formatRupee(goldPriceINRPerGram18K);
+    }
+
+
+    const silverNew =
+        document.getElementById("silver-price-value");
+
+    if (silverNew) {
+        silverNew.textContent =
+            formatRupee(silverPriceINRPerGram);
+    }
+
+
+    const silverKgNew =
+        document.getElementById("silver-kg-price");
+
+    if (silverKgNew) {
+        silverKgNew.textContent =
+            formatRupee(silverPriceINPerKg);
+    }
+}
+
+
+/* =========================================================
+   TREND CALCULATION
+========================================================= */
+
+function updateTrendIndicators() {
+
+    let goldChange = 0;
+    let silverChange = 0;
+
+
+    if (previousGoldPrice > 0) {
+
+        goldChange =
+            ((goldPriceINRPerGram24K -
+                previousGoldPrice) /
+                previousGoldPrice) * 100;
+    }
+
+
+    if (previousSilverPrice > 0) {
+
+        silverChange =
+            ((silverPriceINPerGram -
+                previousSilverPrice) /
+                previousSilverPrice) * 100;
+    }
+
+
+    setTrend(
+        goldTrendElement,
+        goldChange
+    );
+
+
+    setTrend(
+        silverTrendElement,
+        silverChange
+    );
+
+
+    // New UI trend IDs
+
+    const goldTrendNew =
+        document.getElementById("gold-change");
+
+    if (goldTrendNew) {
+
+        goldTrendNew.textContent =
+            `${goldChange >= 0 ? "+" : ""}${goldChange.toFixed(2)}%`;
+    }
+
+
+    const silverTrendNew =
+        document.getElementById("silver-change");
+
+    if (silverTrendNew) {
+
+        silverTrendNew.textContent =
+            `${silverChange >= 0 ? "+" : ""}${silverChange.toFixed(2)}%`;
+    }
+}
+
+
+/* =========================================================
+   ADD HISTORY
+========================================================= */
+
+function addHistoryPoint(
+    goldPrice,
+    silverPrice
 ) {
 
-    const now =
-        new Date();
+    if (
+        !Number.isFinite(goldPrice) ||
+        !Number.isFinite(silverPrice)
+    ) {
+        return;
+    }
 
-    const time =
-        now.toLocaleTimeString(
+
+    const now = new Date();
+
+
+    priceHistory.push({
+
+        time: now.toLocaleTimeString(
             "en-IN",
             {
                 hour: "2-digit",
                 minute: "2-digit",
                 second: "2-digit"
             }
-        );
+        ),
 
-    priceHistory.push({
+        gold: goldPrice,
 
-        gold: gold,
-        silver: silver,
-        time: time
-
+        silver: silverPrice
     });
 
-    if (
-        priceHistory.length >
-        MAX_HISTORY
+
+    while (
+        priceHistory.length > MAX_HISTORY
     ) {
 
         priceHistory.shift();
-
     }
-
 }
 
 
-// ======================================================
-// FETCH LIVE PRICES
-// ======================================================
+/* =========================================================
+   DRAW CHART
+========================================================= */
 
-async function getPrices() {
+function updateChart() {
 
-    console.log(
-        "Fetching live prices..."
-    );
-
-    try {
-
-        const response =
-            await fetch(API_URL);
-
-        if (!response.ok) {
-
-            throw new Error(
-                `HTTP Error: ${response.status}`
-            );
-
-        }
-
-        const data =
-            await response.json();
-
-        console.log(
-            "API Response:",
-            data
-        );
-
-
-        // ----------------------------------------------
-        // Validate API response
-        // ----------------------------------------------
-
-        if (
-            !data.gold ||
-            !data.silver ||
-            typeof data.gold.price !== "number" ||
-            typeof data.silver.price !== "number"
-        ) {
-
-            throw new Error(
-                "Invalid API response"
-            );
-
-        }
-
-
-        // ----------------------------------------------
-        // Convert prices
-        // ----------------------------------------------
-
-        const gold24 =
-            convertGoldPrice(
-                data.gold.price
-            );
-
-        const gold22 =
-            gold24 * GOLD_22K;
-
-        const gold18 =
-            gold24 * GOLD_18K;
-
-        const silver =
-            convertSilverPrice(
-                data.silver.price
-            );
-
-
-        goldPricePerGram =
-            gold24;
-
-        silverPricePerGram =
-            silver;
-
-
-        // ----------------------------------------------
-        // Update Gold UI
-        // ----------------------------------------------
-
-        if (gold24Element) {
-
-            gold24Element.textContent =
-                formatINR(gold24);
-
-        }
-
-        if (gold22Element) {
-
-            gold22Element.textContent =
-                formatINR(gold22);
-
-        }
-
-        if (gold18Element) {
-
-            gold18Element.textContent =
-                formatINR(gold18);
-
-        }
-
-
-        // ----------------------------------------------
-        // Update Silver UI
-        // ----------------------------------------------
-
-        if (silverElement) {
-
-            silverElement.textContent =
-                formatINR(silver);
-
-        }
-
-
-        // ----------------------------------------------
-        // Trends
-        // ----------------------------------------------
-
-        updateTrend(
-            gold24,
-            previousGoldPrice,
-            goldTrend,
-            "Gold"
-        );
-
-        updateTrend(
-            silver,
-            previousSilverPrice,
-            silverTrend,
-            "Silver"
-        );
-
-
-        // ----------------------------------------------
-        // Save previous values
-        // ----------------------------------------------
-
-        previousGoldPrice =
-            gold24;
-
-        previousSilverPrice =
-            silver;
-
-
-        // ----------------------------------------------
-        // History
-        // ----------------------------------------------
-
-        addHistory(
-            gold24,
-            silver
-        );
-
-
-        // ----------------------------------------------
-        // Status
-        // ----------------------------------------------
-
-        if (lastUpdated) {
-
-            lastUpdated.textContent =
-                "Last Updated: " +
-                (
-                    data.gold.updatedAtReadable ||
-                    "Just now"
-                );
-
-        }
-
-
-        // ----------------------------------------------
-        // Chart
-        // ----------------------------------------------
-
-        drawPriceChart();
-
-
-        console.log(
-            "Prices updated successfully"
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "Price Fetch Error:",
-            error
-        );
-
-
-        if (gold24Element)
-            gold24Element.textContent =
-                "Error";
-
-        if (gold22Element)
-            gold22Element.textContent =
-                "Error";
-
-        if (gold18Element)
-            gold18Element.textContent =
-                "Error";
-
-        if (silverElement)
-            silverElement.textContent =
-                "Error";
-
-
-        if (goldTrend) {
-
-            goldTrend.textContent =
-                "🔴 Unable to update price";
-
-            goldTrend.className =
-                "trend down";
-
-        }
-
-
-        if (silverTrend) {
-
-            silverTrend.textContent =
-                "🔴 Unable to update price";
-
-            silverTrend.className =
-                "trend down";
-
-        }
-
-    }
-
-}
-
-
-// ======================================================
-// GOLD BUTTON
-// ======================================================
-
-if (goldButton) {
-
-    goldButton.addEventListener(
-        "click",
-        async () => {
-
-            goldButton.disabled =
-                true;
-
-            goldButton.textContent =
-                "⏳ Updating...";
-
-            await getPrices();
-
-            goldButton.disabled =
-                false;
-
-            goldButton.textContent =
-                "🔄 Refresh Gold Price";
-
-        }
-    );
-
-}
-
-
-// ======================================================
-// SILVER BUTTON
-// ======================================================
-
-if (silverButton) {
-
-    silverButton.addEventListener(
-        "click",
-        async () => {
-
-            silverButton.disabled =
-                true;
-
-            silverButton.textContent =
-                "⏳ Updating...";
-
-            await getPrices();
-
-            silverButton.disabled =
-                false;
-
-            silverButton.textContent =
-                "🔄 Refresh Silver Price";
-
-        }
-    );
-
-}
-
-
-// ======================================================
-// GOLD CALCULATOR
-// ======================================================
-
-function calculateGoldPrice() {
-
-    if (!weightInput ||
-        !goldType ||
-        !calculatedPrice) {
-
+    if (!priceChartCanvas) {
         return;
-
     }
 
-    const weight =
-        parseFloat(
-            weightInput.value
-        );
-
-    const type =
-        goldType.value;
-
-
-    if (
-        isNaN(weight) ||
-        weight <= 0
-    ) {
-
-        calculatedPrice.textContent =
-            "₹ 0.00";
-
-        return;
-
-    }
-
-
-    let pricePerGram =
-        goldPricePerGram;
-
-
-    if (type === "22") {
-
-        pricePerGram =
-            goldPricePerGram *
-            GOLD_22K;
-
-    }
-    else if (type === "18") {
-
-        pricePerGram =
-            goldPricePerGram *
-            GOLD_18K;
-
-    }
-
-
-    const total =
-        weight *
-        pricePerGram;
-
-
-    calculatedPrice.textContent =
-        "₹ " +
-        total.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        );
-
-}
-
-
-if (calculateButton) {
-
-    calculateButton.addEventListener(
-        "click",
-        calculateGoldPrice
-    );
-
-}
-
-
-// ======================================================
-// CHART
-// ======================================================
-
-function drawPriceChart() {
 
     const canvas =
-        document.getElementById(
-            "priceChart"
-        );
-
-    if (!canvas) {
-
-        console.log(
-            "priceChart canvas not found"
-        );
-
-        return;
-
-    }
-
-    if (
-        priceHistory.length < 2
-    ) {
-
-        return;
-
-    }
-
-
-    const parent =
-        canvas.parentElement;
-
-    const width =
-        parent.clientWidth;
-
-    const height =
-        parent.clientHeight || 350;
-
-    const dpr =
-        window.devicePixelRatio || 1;
-
-
-    canvas.width =
-        width * dpr;
-
-    canvas.height =
-        height * dpr;
-
-    canvas.style.width =
-        width + "px";
-
-    canvas.style.height =
-        height + "px";
-
+        priceChartCanvas;
 
     const ctx =
         canvas.getContext("2d");
 
+
+    if (!ctx) {
+        return;
+    }
+
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    const width =
+        rect.width || 800;
+
+
+    const height =
+        rect.height || 350;
+
+
+    const devicePixelRatio =
+        window.devicePixelRatio || 1;
+
+
+    canvas.width =
+        width * devicePixelRatio;
+
+
+    canvas.height =
+        height * devicePixelRatio;
+
+
     ctx.setTransform(
-        dpr,
+        devicePixelRatio,
         0,
         0,
-        dpr,
+        devicePixelRatio,
         0,
         0
     );
 
 
-    const paddingLeft = 55;
-    const paddingRight = 25;
-    const paddingTop = 45;
-    const paddingBottom = 40;
+    /* ---------- CLEAR ---------- */
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
 
 
-    const chartWidth =
-        width -
-        paddingLeft -
-        paddingRight;
+    if (priceHistory.length < 2) {
 
-    const chartHeight =
-        height -
-        paddingTop -
-        paddingBottom;
+        ctx.fillStyle =
+            "#888";
 
+        ctx.font =
+            "14px Arial";
 
-    // ----------------------------------------------
-    // Normalize
-    // ----------------------------------------------
+        ctx.textAlign =
+            "center";
 
-    function normalize(values) {
-
-        const min =
-            Math.min(...values);
-
-        const max =
-            Math.max(...values);
-
-        const range =
-            max - min || 1;
-
-        return values.map(
-            value =>
-                (value - min) /
-                range
+        ctx.fillText(
+            "Waiting for price updates...",
+            width / 2,
+            height / 2
         );
 
+        return;
     }
 
+
+    /* ---------- VALUES ---------- */
 
     const goldValues =
         priceHistory.map(
@@ -702,551 +531,905 @@ function drawPriceChart() {
         );
 
 
-    const goldNormalized =
-        normalize(
-            goldValues
-        );
-
-    const silverNormalized =
-        normalize(
+    const allValues =
+        goldValues.concat(
             silverValues
         );
 
 
-    function makePoints(values) {
+    let min =
+        Math.min(...allValues);
 
-        return values.map(
-            (value, index) => {
+    let max =
+        Math.max(...allValues);
 
-                const x =
-                    paddingLeft +
-                    (
-                        index /
-                        (values.length - 1)
-                    ) *
-                    chartWidth;
 
-                const y =
-                    paddingTop +
-                    (
-                        1 - value
-                    ) *
-                    chartHeight;
+    if (min === max) {
 
-                return {
-                    x,
-                    y
-                };
-
-            }
-        );
-
+        min -= 1;
+        max += 1;
     }
 
 
-    const goldPoints =
-        makePoints(
-            goldNormalized
-        );
-
-    const silverPoints =
-        makePoints(
-            silverNormalized
-        );
+    const paddingLeft = 50;
+    const paddingRight = 20;
+    const paddingTop = 30;
+    const paddingBottom = 40;
 
 
-    // ----------------------------------------------
-    // Draw smooth curve
-    // ----------------------------------------------
-
-    function drawLine(
-        points,
-        mainColor,
-        glowColor,
-        progress
-    ) {
-
-        if (!points.length)
-            return;
+    const chartWidth =
+        width -
+        paddingLeft -
+        paddingRight;
 
 
-        const count =
-            Math.max(
-                2,
-                Math.ceil(
-                    points.length *
-                    progress
-                )
-            );
+    const chartHeight =
+        height -
+        paddingTop -
+        paddingBottom;
 
 
-        const visible =
-            points.slice(
-                0,
-                count
-            );
+    /* ---------- GRID ---------- */
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,0.08)";
+
+    ctx.lineWidth = 1;
+
+
+    for (let i = 0; i <= 4; i++) {
+
+        const y =
+            paddingTop +
+            (chartHeight / 4) * i;
 
 
         ctx.beginPath();
 
         ctx.moveTo(
-            visible[0].x,
-            visible[0].y
+            paddingLeft,
+            y
         );
 
+        ctx.lineTo(
+            width - paddingRight,
+            y
+        );
 
-        for (
-            let i = 1;
-            i < visible.length;
-            i++
-        ) {
-
-            const p0 =
-                visible[i - 1];
-
-            const p1 =
-                visible[i];
-
-            const midX =
-                (p0.x + p1.x) / 2;
-
-            const midY =
-                (p0.y + p1.y) / 2;
+        ctx.stroke();
+    }
 
 
-            ctx.quadraticCurveTo(
-                p0.x,
-                p0.y,
-                midX,
-                midY
-            );
+    /* ---------- DRAW LINE ---------- */
 
+    function drawLine(
+        values,
+        lineColor
+    ) {
+
+        if (values.length < 2) {
+            return;
         }
 
 
-        const last =
-            visible[
-                visible.length - 1
-            ];
+        ctx.beginPath();
 
 
-        ctx.lineTo(
-            last.x,
-            last.y
+        values.forEach(
+            (value, index) => {
+
+                const x =
+                    paddingLeft +
+                    (index /
+                        (values.length - 1)) *
+                    chartWidth;
+
+
+                const y =
+                    paddingTop +
+                    chartHeight -
+                    ((value - min) /
+                        (max - min)) *
+                    chartHeight;
+
+
+                if (index === 0) {
+
+                    ctx.moveTo(x, y);
+
+                } else {
+
+                    ctx.lineTo(x, y);
+                }
+            }
         );
 
 
-        // Big glow
-
-        ctx.save();
-
         ctx.strokeStyle =
-            glowColor;
-
-        ctx.lineWidth = 14;
-
-        ctx.globalAlpha =
-            0.12;
-
-        ctx.lineCap =
-            "round";
-
-        ctx.shadowBlur =
-            30;
-
-        ctx.shadowColor =
-            glowColor;
-
-        ctx.stroke();
-
-        ctx.restore();
-
-
-        // Medium glow
-
-        ctx.save();
-
-        ctx.strokeStyle =
-            glowColor;
-
-        ctx.lineWidth = 8;
-
-        ctx.globalAlpha =
-            0.25;
-
-        ctx.lineCap =
-            "round";
-
-        ctx.shadowBlur =
-            20;
-
-        ctx.shadowColor =
-            glowColor;
-
-        ctx.stroke();
-
-        ctx.restore();
-
-
-        // Main line
-
-        ctx.save();
-
-        ctx.strokeStyle =
-            mainColor;
+            lineColor;
 
         ctx.lineWidth = 3;
-
-        ctx.lineCap =
-            "round";
 
         ctx.lineJoin =
             "round";
 
-        ctx.shadowBlur =
-            10;
+        ctx.lineCap =
+            "round";
+
+        ctx.shadowBlur = 8;
 
         ctx.shadowColor =
-            glowColor;
+            lineColor;
 
         ctx.stroke();
 
-        ctx.restore();
-
-
-        // Glowing point
-
-        ctx.save();
-
-        const pulse =
-            5 +
-            Math.sin(
-                Date.now() / 180
-            ) * 2;
-
-
-        ctx.beginPath();
-
-        ctx.arc(
-            last.x,
-            last.y,
-            pulse * 2.5,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fillStyle =
-            glowColor;
-
-        ctx.globalAlpha =
-            0.15;
-
-        ctx.shadowBlur =
-            30;
-
-        ctx.shadowColor =
-            glowColor;
-
-        ctx.fill();
-
-        ctx.restore();
-
-
-        // Main dot
-
-        ctx.beginPath();
-
-        ctx.arc(
-            last.x,
-            last.y,
-            3,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fillStyle =
-            mainColor;
-
-        ctx.shadowBlur =
-            15;
-
-        ctx.shadowColor =
-            glowColor;
-
-        ctx.fill();
-
-
-        // White center
-
-        ctx.beginPath();
-
-        ctx.arc(
-            last.x,
-            last.y,
-            1.5,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fillStyle =
-            "#ffffff";
-
-        ctx.fill();
-
+        ctx.shadowBlur = 0;
     }
 
 
-    // ----------------------------------------------
-    // Grid + legend
-    // ----------------------------------------------
-
-    function drawBackground() {
-
-        ctx.clearRect(
-            0,
-            0,
-            width,
-            height
-        );
+    drawLine(
+        goldValues,
+        "#f5c542"
+    );
 
 
-        // Grid
-
-        ctx.save();
-
-        ctx.strokeStyle =
-            "rgba(255,255,255,0.07)";
-
-        ctx.lineWidth = 1;
+    drawLine(
+        silverValues,
+        "#d8d8d8"
+    );
 
 
-        for (
-            let i = 0;
-            i <= 4;
-            i++
-        ) {
+    /* ---------- LEGEND ---------- */
 
-            const y =
-                paddingTop +
-                (
-                    chartHeight / 4
-                ) * i;
+    ctx.font =
+        "13px Arial";
+
+    ctx.textAlign =
+        "left";
 
 
-            ctx.beginPath();
+    ctx.fillStyle =
+        "#f5c542";
 
-            ctx.moveTo(
-                paddingLeft,
-                y
-            );
-
-            ctx.lineTo(
-                width -
-                paddingRight,
-                y
-            );
-
-            ctx.stroke();
-
-        }
-
-        ctx.restore();
+    ctx.fillText(
+        "● Gold",
+        paddingLeft,
+        18
+    );
 
 
-        // Legend
+    ctx.fillStyle =
+        "#d8d8d8";
 
-        ctx.font =
-            "13px Arial";
-
-        ctx.textAlign =
-            "left";
-
-
-        ctx.fillStyle =
-            "#d4af37";
-
-        ctx.fillText(
-            "● Gold",
-            paddingLeft,
-            20
-        );
+    ctx.fillText(
+        "● Silver",
+        paddingLeft + 70,
+        18
+    );
 
 
-        ctx.fillStyle =
-            "#d7dce3";
+    /* ---------- X AXIS LABELS ---------- */
 
-        ctx.fillText(
-            "● Silver",
-            paddingLeft + 75,
-            20
-        );
+    ctx.fillStyle =
+        "#888";
 
-
-        // Time labels
-
-        ctx.font =
-            "10px Arial";
-
-        ctx.fillStyle =
-            "#888";
-
-        ctx.textAlign =
-            "center";
+    ctx.font =
+        "11px Arial";
 
 
-        priceHistory.forEach(
-            (item, index) => {
+    priceHistory.forEach(
+        (item, index) => {
+
+            if (
+                index === 0 ||
+                index === priceHistory.length - 1
+            ) {
 
                 const x =
                     paddingLeft +
-                    (
-                        index /
-                        (
-                            priceHistory.length -
-                            1
-                        )
-                    ) *
+                    (index /
+                        (priceHistory.length - 1)) *
                     chartWidth;
+
+
+                ctx.textAlign =
+                    index === 0
+                        ? "left"
+                        : "right";
 
 
                 ctx.fillText(
                     item.time,
                     x,
-                    height - 15
+                    height - 12
                 );
-
             }
-        );
-
-    }
-
-
-    // ----------------------------------------------
-    // Smooth animation
-    // ----------------------------------------------
-
-    if (chartAnimation) {
-
-        cancelAnimationFrame(
-            chartAnimation
-        );
-
-    }
-
-
-    const start =
-        performance.now();
-
-    const duration =
-        1200;
-
-
-    function animate(now) {
-
-        const elapsed =
-            now - start;
-
-        let progress =
-            elapsed / duration;
-
-
-        progress =
-            Math.min(
-                progress,
-                1
-            );
-
-
-        // Ease
-
-        const eased =
-            1 -
-            Math.pow(
-                1 - progress,
-                3
-            );
-
-
-        drawBackground();
-
-
-        drawLine(
-            goldPoints,
-            "#d4af37",
-            "#ffd84d",
-            eased
-        );
-
-
-        drawLine(
-            silverPoints,
-            "#d7dce3",
-            "#ffffff",
-            eased
-        );
-
-
-        if (
-            progress < 1
-        ) {
-
-            chartAnimation =
-                requestAnimationFrame(
-                    animate
-                );
-
         }
-
-    }
-
-
-    chartAnimation =
-        requestAnimationFrame(
-            animate
-        );
-
+    );
 }
 
 
-// ======================================================
-// WINDOW RESIZE
-// ======================================================
+/* =========================================================
+   FETCH LIVE PRICES
+========================================================= */
+
+async function fetchLivePrices() {
+
+    if (isFetching) {
+        return;
+    }
+
+
+    isFetching = true;
+
+
+    console.log(
+        "🔄 Fetching live Gold & Silver prices..."
+    );
+
+
+    updateStatus(
+        "⏳ Syncing latest market price..."
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                BACKEND_API_URL,
+                {
+                    method: "GET",
+
+                    cache: "no-store",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    },
+
+                    signal:
+                        AbortSignal.timeout(10000)
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "📦 API DATA:",
+            data
+        );
+
+
+        /* ---------- VALIDATE DATA ---------- */
+
+        if (
+            !data ||
+            !data.gold ||
+            !data.silver
+        ) {
+
+            throw new Error(
+                "Invalid price data received from backend"
+            );
+        }
+
+
+        const newGoldUSD =
+            Number(
+                data.gold.price
+            );
+
+
+        const newSilverUSD =
+            Number(
+                data.silver.price
+            );
+
+
+        if (
+            !Number.isFinite(newGoldUSD) ||
+            !Number.isFinite(newSilverUSD) ||
+            newGoldUSD <= 0 ||
+            newSilverUSD <= 0
+        ) {
+
+            throw new Error(
+                "Invalid Gold/Silver price values"
+            );
+        }
+
+
+        /* ---------- SAVE PREVIOUS ---------- */
+
+        previousGoldPrice =
+            goldPriceINRPerGram24K;
+
+
+        previousSilverPrice =
+            silverPriceINRPerGram;
+
+
+        /* ---------- USD PRICE ---------- */
+
+        goldPriceUSD =
+            newGoldUSD;
+
+
+        silverPriceUSD =
+            newSilverUSD;
+
+
+        /* =================================================
+           GOLD USD/OZ → INR/GRAM
+        ================================================= */
+
+        goldPriceINRPerGram24K =
+            (
+                goldPriceUSD *
+                USD_TO_INR_DEFAULT
+            ) /
+            OUNCE_TO_GRAM;
+
+
+        /* ---------- 22K ---------- */
+
+        goldPriceINRPerGram22K =
+            goldPriceINRPerGram24K *
+            PURITY_MAP["22"];
+
+
+        /* ---------- 18K ---------- */
+
+        goldPriceINRPerGram18K =
+            goldPriceINRPerGram24K *
+            PURITY_MAP["18"];
+
+
+        /* =================================================
+           SILVER USD/OZ → INR/GRAM
+        ================================================= */
+
+        silverPriceINRPerGram =
+            (
+                silverPriceUSD *
+                USD_TO_INR_DEFAULT
+            ) /
+            OUNCE_TO_GRAM;
+
+
+        /* ---------- SILVER KG ---------- */
+
+        silverPriceINRPerKg =
+            silverPriceINRPerGram *
+            1000;
+
+
+        /* =================================================
+           UPDATE WEBSITE
+        ================================================= */
+
+        renderPriceUI();
+
+
+        updateTrendIndicators();
+
+
+        addHistoryPoint(
+            goldPriceINRPerGram24K,
+            silverPriceINRPerGram
+        );
+
+
+        updateChart();
+
+
+        calculateGoldValue();
+
+
+        /* =================================================
+           LAST UPDATED
+        ================================================= */
+
+        const now =
+            new Date();
+
+
+        updateStatus(
+            `Last Updated: ${now.toLocaleTimeString()} | Connected to Live Market Data`
+        );
+
+
+        /* =================================================
+           SUCCESS LOG
+        ================================================= */
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "✅ LIVE MARKET DATA UPDATED"
+        );
+
+        console.log(
+            "Gold USD/oz:",
+            goldPriceUSD
+        );
+
+        console.log(
+            "Silver USD/oz:",
+            silverPriceUSD
+        );
+
+        console.log(
+            "Gold 24K INR/gram:",
+            goldPriceINRPerGram24K
+        );
+
+        console.log(
+            "Gold 22K INR/gram:",
+            goldPriceINRPerGram22K
+        );
+
+        console.log(
+            "Gold 18K INR/gram:",
+            goldPriceINRPerGram18K
+        );
+
+        console.log(
+            "Silver INR/gram:",
+            silverPriceINRPerGram
+        );
+
+        console.log(
+            "================================="
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Price fetch failed:",
+            error
+        );
+
+
+        updateStatus(
+            "🔴 Unable to update price"
+        );
+
+
+        /*
+         * If we already have valid prices,
+         * keep showing them.
+         */
+
+        if (
+            goldPriceINRPerGram24K > 0 &&
+            silverPriceINRPerGram > 0
+        ) {
+
+            renderPriceUI();
+
+            calculateGoldValue();
+
+            console.log(
+                "ℹ️ Keeping previous valid market prices."
+            );
+
+        } else {
+
+            if (gold24Element) {
+                gold24Element.textContent =
+                    "Error";
+            }
+
+            if (gold22Element) {
+                gold22Element.textContent =
+                    "Error";
+            }
+
+            if (gold18Element) {
+                gold18Element.textContent =
+                    "Error";
+            }
+
+            if (silverPriceElement) {
+                silverPriceElement.textContent =
+                    "Error";
+            }
+        }
+
+
+    } finally {
+
+        isFetching = false;
+    }
+}
+
+
+/* =========================================================
+   GOLD CALCULATOR
+========================================================= */
+
+function calculateGoldValue() {
+
+    if (
+        !weightElement ||
+        !goldTypeElement ||
+        !calculatedPriceElement
+    ) {
+        return;
+    }
+
+
+    const weight =
+        Number(
+            weightElement.value
+        );
+
+
+    const goldType =
+        goldTypeElement.value;
+
+
+    if (
+        !Number.isFinite(weight) ||
+        weight <= 0
+    ) {
+
+        calculatedPriceElement.textContent =
+            "₹ 0.00";
+
+        updateCalculatorExtraUI(
+            0,
+            0
+        );
+
+        return;
+    }
+
+
+    let pricePerGram = 0;
+
+
+    if (goldType === "24") {
+
+        pricePerGram =
+            goldPriceINRPerGram24K;
+
+    } else if (goldType === "22") {
+
+        pricePerGram =
+            goldPriceINRPerGram22K;
+
+    } else if (goldType === "18") {
+
+        pricePerGram =
+            goldPriceINRPerGram18K;
+    }
+
+
+    if (pricePerGram <= 0) {
+
+        calculatedPriceElement.textContent =
+            "₹ 0.00";
+
+        return;
+    }
+
+
+    /* ---------- BASE PRICE ---------- */
+
+    const basePrice =
+        weight *
+        pricePerGram;
+
+
+    /* =================================================
+       OPTIONAL GST
+    ================================================= */
+
+    const gstCheckbox =
+        document.getElementById(
+            "gst-checkbox"
+        ) ||
+        document.getElementById(
+            "include-gst"
+        );
+
+
+    const makingCheckbox =
+        document.getElementById(
+            "making-checkbox"
+        ) ||
+        document.getElementById(
+            "include-making"
+        );
+
+
+    let gst =
+        0;
+
+    let makingCharge =
+        0;
+
+
+    if (
+        gstCheckbox &&
+        gstCheckbox.checked
+    ) {
+
+        gst =
+            basePrice * 0.03;
+    }
+
+
+    if (
+        makingCheckbox &&
+        makingCheckbox.checked
+    ) {
+
+        makingCharge =
+            basePrice * 0.05;
+    }
+
+
+    const total =
+        basePrice +
+        gst +
+        makingCharge;
+
+
+    calculatedPriceElement.textContent =
+        formatRupee(total);
+
+
+    updateCalculatorExtraUI(
+        basePrice,
+        gst + makingCharge
+    );
+
+
+    /* ---------- WEIGHT PREVIEW ---------- */
+
+    const weightPreview =
+        document.getElementById(
+            "weight-preview"
+        );
+
+
+    if (weightPreview) {
+
+        weightPreview.textContent =
+            `${formatNumber(weight)} Grams`;
+    }
+}
+
+
+/* =========================================================
+   CALCULATOR EXTRA UI
+========================================================= */
+
+function updateCalculatorExtraUI(
+    basePrice,
+    extraCharges
+) {
+
+    const baseElement =
+        document.getElementById(
+            "base-metal-price"
+        );
+
+
+    const extraElement =
+        document.getElementById(
+            "extra-charges"
+        );
+
+
+    if (baseElement) {
+
+        baseElement.textContent =
+            formatRupee(basePrice);
+    }
+
+
+    if (extraElement) {
+
+        extraElement.textContent =
+            formatRupee(extraCharges);
+    }
+}
+
+
+/* =========================================================
+   GOLD REFRESH BUTTON
+========================================================= */
+
+if (goldButton) {
+
+    goldButton.addEventListener(
+        "click",
+        async function () {
+
+            await fetchLivePrices();
+
+        }
+    );
+}
+
+
+/* =========================================================
+   SILVER REFRESH BUTTON
+========================================================= */
+
+if (silverButton) {
+
+    silverButton.addEventListener(
+        "click",
+        async function () {
+
+            await fetchLivePrices();
+
+        }
+    );
+}
+
+
+/* =========================================================
+   CALCULATOR BUTTON
+========================================================= */
+
+if (calculateButton) {
+
+    calculateButton.addEventListener(
+        "click",
+        function () {
+
+            calculateGoldValue();
+
+        }
+    );
+}
+
+
+/* =========================================================
+   CALCULATOR LIVE UPDATE
+========================================================= */
+
+if (weightElement) {
+
+    weightElement.addEventListener(
+        "input",
+        function () {
+
+            calculateGoldValue();
+
+        }
+    );
+}
+
+
+if (goldTypeElement) {
+
+    goldTypeElement.addEventListener(
+        "change",
+        function () {
+
+            calculateGoldValue();
+
+        }
+    );
+}
+
+
+/* =========================================================
+   GST / MAKING CHARGE LIVE UPDATE
+========================================================= */
+
+const gstCheckboxElement =
+    document.getElementById(
+        "gst-checkbox"
+    ) ||
+    document.getElementById(
+        "include-gst"
+    );
+
+
+const makingCheckboxElement =
+    document.getElementById(
+        "making-checkbox"
+    ) ||
+    document.getElementById(
+        "include-making"
+    );
+
+
+if (gstCheckboxElement) {
+
+    gstCheckboxElement.addEventListener(
+        "change",
+        calculateGoldValue
+    );
+}
+
+
+if (makingCheckboxElement) {
+
+    makingCheckboxElement.addEventListener(
+        "change",
+        calculateGoldValue
+    );
+}
+
+
+/* =========================================================
+   WINDOW RESIZE
+========================================================= */
 
 window.addEventListener(
     "resize",
-    () => {
+    function () {
 
-        if (
-            priceHistory.length >= 2
-        ) {
-
-            drawPriceChart();
-
-        }
+        updateChart();
 
     }
 );
 
 
-// ======================================================
-// INITIAL LOAD
-// ======================================================
+/* =========================================================
+   AUTO REFRESH
+========================================================= */
+
+// Fetch immediately
+fetchLivePrices();
+
+
+// Refresh every 60 seconds
+setInterval(
+    fetchLivePrices,
+    60000
+);
+
+
+/* =========================================================
+   PAGE LOAD
+========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    function () {
 
         console.log(
-            "GoldTrack started"
+            "🪙 GoldTrack 3D initialized"
         );
 
-        getPrices();
+        console.log(
+            "🔗 Backend:",
+            BACKEND_API_URL
+        );
 
-        // Update every 30 seconds
+        console.log(
+            "💱 Currency: INR"
+        );
 
-        setInterval(
-            getPrices,
-            30000
+        console.log(
+            "📊 Chart history:",
+            MAX_HISTORY,
+            "updates"
         );
 
     }

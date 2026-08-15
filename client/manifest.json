@@ -1,0 +1,38 @@
+{
+  "name": "GoldTrack 3D - Live Gold & Silver Price Tracker",
+  "short_name": "GoldTrack 3D",
+  "description": "Track live gold and silver prices in real-time with interactive 3D visualizer and precision calculator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#08090C",
+  "theme_color": "#08090C",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Gold Prices",
+      "short_name": "Gold Prices",
+      "description": "View live gold spot prices per gram",
+      "url": "./index.html#gold24"
+    },
+    {
+      "name": "Gold Calculator",
+      "short_name": "Calculator",
+      "description": "Calculate exact gold value by weight",
+      "url": "./index.html#gold-weight"
+    }
+  ]
+}

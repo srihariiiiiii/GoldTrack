@@ -12,26 +12,64 @@
 
     <meta
         name="description"
-        content="GoldTrack - Track live Gold and Silver prices"
+        content="GoldTrack 3D - Live Gold & Silver Price Tracker, Interactive 3D Visualizer & Price Calculator"
     >
 
     <meta
         name="theme-color"
-        content="#080808"
+        content="#08090C"
     >
 
-    <title>
-        GoldTrack - Live Gold & Silver Prices
-    </title>
+    <title>GoldTrack 3D - Live Gold & Silver Price Tracker</title>
 
-    <!-- ==================================================
-         CSS
-    =================================================== -->
+
+    <!-- =====================================================
+         GOOGLE FONTS
+    ====================================================== -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         MAIN CSS
+    ====================================================== -->
 
     <link
         rel="stylesheet"
         href="style.css"
     >
+
+
+    <!-- =====================================================
+         THREE.JS
+    ====================================================== -->
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+    ></script>
+
+
+    <!-- =====================================================
+         CHART.JS
+    ====================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
 
 </head>
 
@@ -39,494 +77,971 @@
 <body>
 
 
-    <!-- ==================================================
+    <!-- =====================================================
          3D BACKGROUND
-    =================================================== -->
+    ====================================================== -->
 
-    <div
-        class="three-d-background"
-        aria-hidden="true"
-    >
+    <div id="three-canvas-container">
 
-        <!-- Gold Coin -->
-
-        <div class="coin coin-gold">
-
-            <div class="coin-edge"></div>
-
-            <div class="coin-face">
-
-                <span class="coin-symbol">
-                    Au
-                </span>
-
-                <span class="coin-text">
-                    GOLD
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- Silver Coin -->
-
-        <div class="coin coin-silver">
-
-            <div class="coin-edge"></div>
-
-            <div class="coin-face">
-
-                <span class="coin-symbol">
-                    Ag
-                </span>
-
-                <span class="coin-text">
-                    SILVER
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- Floating Particles -->
-
-        <div class="particle particle-1"></div>
-
-        <div class="particle particle-2"></div>
-
-        <div class="particle particle-3"></div>
-
-        <div class="particle particle-4"></div>
-
-        <div class="particle particle-5"></div>
-
-        <div class="particle particle-6"></div>
-
-        <div class="particle particle-7"></div>
-
-        <div class="particle particle-8"></div>
+        <canvas id="three-canvas"></canvas>
 
     </div>
 
 
 
-    <!-- ==================================================
-         HEADER
-    =================================================== -->
+    <!-- =====================================================
+         APPLICATION WRAPPER
+    ====================================================== -->
 
-    <header class="site-header">
+    <div class="app-wrapper">
 
-        <div class="header-content">
 
-            <div class="logo-area">
+        <!-- =================================================
+             LIVE MARKET TICKER
+        ================================================== -->
 
-                <div class="logo-coin">
-                    🪙
+        <div class="ticker-bar">
+
+            <div class="ticker-content">
+
+
+                <div class="ticker-item">
+
+                    <span class="ticker-label">
+                        Gold 24K:
+                    </span>
+
+                    <span
+                        id="ticker-gold24"
+                        class="ticker-val"
+                    >
+                        Loading...
+                    </span>
+
                 </div>
 
-                <div>
 
-                    <h1>
-                        GoldTrack
-                    </h1>
+                <div class="ticker-item">
 
-                    <p>
-                        Track Live Gold & Silver Prices
-                    </p>
+                    <span class="ticker-label">
+                        Gold 22K:
+                    </span>
+
+                    <span
+                        id="ticker-gold22"
+                        class="ticker-val"
+                    >
+                        Loading...
+                    </span>
 
                 </div>
+
+
+                <div class="ticker-item">
+
+                    <span class="ticker-label">
+                        Pure Silver:
+                    </span>
+
+                    <span
+                        id="ticker-silver"
+                        class="ticker-val"
+                    >
+                        Loading...
+                    </span>
+
+                </div>
+
+
+                <div class="ticker-item">
+
+                    <span class="ticker-label">
+                        Live Status:
+                    </span>
+
+                    <span class="live-badge">
+
+                        <i class="dot-pulse"></i>
+
+                        LIVE UPDATES
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- TICKER CONTROLS -->
+
+            <div class="ticker-controls">
+
+
+                <!-- Currency -->
+
+                <div class="currency-selector">
+
+                    <label
+                        for="currency-select"
+                        style="margin-right:4px;color:#94A3B8;"
+                    >
+                        💱 Currency:
+                    </label>
+
+
+                    <select
+                        id="currency-select"
+                        title="Choose your preferred currency"
+                    >
+
+                        <option value="INR">
+                            Indian Rupee (₹)
+                        </option>
+
+                        <option value="USD">
+                            US Dollar ($)
+                        </option>
+
+                        <option value="EUR">
+                            Euro (€)
+                        </option>
+
+                        <option value="AED">
+                            UAE Dirham (AED)
+                        </option>
+
+                        <option value="GBP">
+                            British Pound (£)
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Refresh -->
+
+                <button
+                    id="global-refresh-btn"
+                    class="icon-btn"
+                    type="button"
+                    title="Refresh Live Prices Now"
+                >
+                    🔄
+                </button>
 
             </div>
 
         </div>
 
-    </header>
 
 
+        <!-- =================================================
+             HERO SECTION
+        ================================================== -->
 
-    <!-- ==================================================
-         MAIN
-    =================================================== -->
-
-    <main class="container">
+        <header class="site-header">
 
 
-        <!-- ==================================================
-             GOLD CARD
-        =================================================== -->
+            <div class="brand-badge">
 
-        <section
-            class="card gold-card"
-        >
+                <span class="pulse-dot"></span>
 
-            <div class="card-title">
-
-                <h2>
-                    🥇 Gold Prices
-                </h2>
-
-                <span class="live-badge">
-                    ● LIVE
+                <span>
+                    Interactive 3D Visualizer Active
                 </span>
 
             </div>
 
 
-            <!-- 24K -->
-
-            <div class="price-box">
-
-                <h3>
-                    24K Gold Price
-                </h3>
-
-                <p id="gold24">
-                    Loading...
-                </p>
-
-            </div>
+            <h1 class="header-title">
+                GoldTrack 3D
+            </h1>
 
 
-            <!-- 22K -->
-
-            <div class="price-box">
-
-                <h3>
-                    22K Gold Price
-                </h3>
-
-                <p id="gold22">
-                    Loading...
-                </p>
-
-            </div>
-
-
-            <!-- 18K -->
-
-            <div class="price-box">
-
-                <h3>
-                    18K Gold Price
-                </h3>
-
-                <p id="gold18">
-                    Loading...
-                </p>
-
-            </div>
-
-
-            <!-- Gold Trend -->
-
-            <p
-                id="gold-trend"
-                class="trend same"
-            >
-                ⏳ Waiting for next update...
+            <p class="header-subtitle">
+                Track live gold and silver prices in real-time,
+                view interactive 3D coins, watch market trends,
+                and calculate metal values easily.
             </p>
 
 
-            <!-- Gold Button -->
+            <!-- 3D MODEL CONTROLS -->
 
-            <button
-                id="gold-btn"
-                type="button"
-            >
-                🔄 Refresh Gold Price
-            </button>
+            <div class="model-controls">
 
-        </section>
+                <button
+                    class="model-btn active"
+                    type="button"
+                    data-model="gold-coin"
+                >
+                    🥇 View 3D Gold Coin
+                </button>
+
+
+                <button
+                    class="model-btn"
+                    type="button"
+                    data-model="gold-bar"
+                >
+                    🏆 View 3D Gold Bar
+                </button>
+
+
+                <button
+                    class="model-btn"
+                    type="button"
+                    data-model="silver-coin"
+                >
+                    🥈 View 3D Silver Coin
+                </button>
+
+            </div>
+
+        </header>
 
 
 
-        <!-- ==================================================
-             SILVER CARD
-        =================================================== -->
+        <!-- =================================================
+             MAIN DASHBOARD
+        ================================================== -->
 
-        <section
-            class="card silver-card"
-        >
+        <main class="container">
 
-            <div class="card-title">
 
-                <h2>
-                    🥈 Silver Price
-                </h2>
+            <!-- =================================================
+                 PRICE CARDS
+            ================================================== -->
 
-                <span class="live-badge silver-live">
-                    ● LIVE
-                </span>
+            <div class="grid-2col">
+
+
+                <!-- ================= GOLD ================= -->
+
+                <section class="card card-gold">
+
+
+                    <div class="card-header">
+
+
+                        <div class="card-title">
+
+                            <div class="card-icon gold-icon">
+                                🥇
+                            </div>
+
+
+                            <div>
+
+                                <h2>
+                                    Live Gold Prices
+                                </h2>
+
+                                <span
+                                    style="font-size:12px;color:var(--text-muted);"
+                                >
+                                    Real-time rates per gram
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <span class="live-badge">
+
+                            <i class="dot-pulse"></i>
+
+                            LIVE
+
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="price-boxes-container">
+
+
+                        <!-- 24K -->
+
+                        <div class="price-box">
+
+                            <div class="price-meta">
+
+                                <h3>
+                                    24K Pure Gold
+                                </h3>
+
+                                <span class="purity-tag">
+                                    99.9% Highest Purity
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                id="gold24"
+                                class="price-value gold-val"
+                            >
+                                Loading...
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- 22K -->
+
+                        <div class="price-box">
+
+                            <div class="price-meta">
+
+                                <h3>
+                                    22K Jewelry Gold
+                                </h3>
+
+                                <span class="purity-tag">
+                                    91.6% Standard Jewelry
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                id="gold22"
+                                class="price-value gold-val"
+                            >
+                                Loading...
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- 18K -->
+
+                        <div class="price-box">
+
+                            <div class="price-meta">
+
+                                <h3>
+                                    18K Everyday Gold
+                                </h3>
+
+                                <span class="purity-tag">
+                                    75.0% Regular Gold
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                id="gold18"
+                                class="price-value gold-val"
+                            >
+                                Loading...
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- GOLD TREND -->
+
+                    <div
+                        id="gold-trend"
+                        class="trend-indicator trend-same"
+                    >
+
+                        <span>
+                            ⏳ Syncing latest market price...
+                        </span>
+
+                        <span
+                            id="gold-change-pct"
+                            style="font-weight:700;"
+                        >
+                            +0.00%
+                        </span>
+
+                    </div>
+
+
+
+                    <!-- GOLD REFRESH -->
+
+                    <button
+                        id="gold-btn"
+                        class="action-btn btn-gold"
+                        type="button"
+                    >
+
+                        <span>
+                            ⚡ Refresh Gold Prices Now
+                        </span>
+
+                    </button>
+
+                </section>
+
+
+
+                <!-- ================= SILVER ================= -->
+
+                <section class="card card-silver">
+
+
+                    <div class="card-header">
+
+
+                        <div class="card-title">
+
+                            <div class="card-icon silver-icon">
+                                🥈
+                            </div>
+
+
+                            <div>
+
+                                <h2>
+                                    Live Silver Prices
+                                </h2>
+
+                                <span
+                                    style="font-size:12px;color:var(--text-muted);"
+                                >
+                                    Real-time rates per gram & kilogram
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <span class="live-badge">
+
+                            <i class="dot-pulse"></i>
+
+                            LIVE
+
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="price-boxes-container">
+
+
+                        <!-- SILVER GRAM -->
+
+                        <div
+                            class="price-box"
+                            style="margin-bottom:12px;"
+                        >
+
+                            <div class="price-meta">
+
+                                <h3>
+                                    Pure Silver (999 Fine)
+                                </h3>
+
+                                <span
+                                    class="purity-tag"
+                                    style="background:rgba(203,213,225,0.15);color:#FFF;"
+                                >
+                                    99.9% Pure Silver
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                id="silver-price"
+                                class="price-value silver-val"
+                            >
+                                Loading...
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- SILVER KG -->
+
+                        <div class="price-box">
+
+                            <div class="price-meta">
+
+                                <h3>
+                                    1 Kilogram Silver Bar
+                                </h3>
+
+                                <span
+                                    class="purity-tag"
+                                    style="background:rgba(203,213,225,0.15);color:#FFF;"
+                                >
+                                    Bulk Silver Value
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                id="silver-kg-price"
+                                class="price-value silver-val"
+                            >
+                                Loading...
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- SILVER TREND -->
+
+                    <div
+                        id="silver-trend"
+                        class="trend-indicator trend-same"
+                        style="margin-top:50px;"
+                    >
+
+                        <span>
+                            ⏳ Syncing latest market price...
+                        </span>
+
+                        <span
+                            id="silver-change-pct"
+                            style="font-weight:700;"
+                        >
+                            +0.00%
+                        </span>
+
+                    </div>
+
+
+
+                    <!-- SILVER REFRESH -->
+
+                    <button
+                        id="silver-btn"
+                        class="action-btn btn-silver"
+                        type="button"
+                    >
+
+                        <span>
+                            ⚡ Refresh Silver Prices Now
+                        </span>
+
+                    </button>
+
+                </section>
 
             </div>
 
 
-            <!-- Silver -->
 
-            <div class="price-box">
+            <!-- =================================================
+                 PRICE TREND CHART
+            ================================================== -->
 
-                <h3>
-                    Silver Price
-                </h3>
-
-                <p id="silver-price">
-                    Loading...
-                </p>
-
-            </div>
+            <section class="card chart-card">
 
 
-            <!-- Silver Trend -->
-
-            <p
-                id="silver-trend"
-                class="trend same"
-            >
-                ⏳ Waiting for next update...
-            </p>
+                <div class="chart-header">
 
 
-            <!-- Silver Button -->
+                    <div>
 
-            <button
-                id="silver-btn"
-                type="button"
-            >
-                🔄 Refresh Silver Price
-            </button>
+                        <h2>
+                            📈 Price Trend & Market History
+                        </h2>
 
-        </section>
+                        <p
+                            style="font-size:13px;color:var(--text-muted);margin-top:4px;"
+                        >
+                            Watch how gold and silver prices
+                            change over time with live price updates
+                        </p>
+
+                    </div>
+
+
+                    <div class="chart-controls">
+
+                        <button
+                            class="timeframe-btn active"
+                            type="button"
+                            data-tf="live"
+                        >
+                            Live Ticks
+                        </button>
+
+                        <button
+                            class="timeframe-btn"
+                            type="button"
+                            data-tf="1d"
+                        >
+                            1 Day
+                        </button>
+
+                        <button
+                            class="timeframe-btn"
+                            type="button"
+                            data-tf="1w"
+                        >
+                            1 Week
+                        </button>
+
+                    </div>
+
+                </div>
 
 
 
-        <!-- ==================================================
-             PRICE TREND CHART
-        =================================================== -->
+                <div class="chart-container">
 
-        <section
-            class="card chart-card"
-        >
+                    <canvas id="priceChart"></canvas>
 
-            <div class="chart-header">
+                </div>
 
-                <div>
+
+
+                <div class="chart-legend">
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot dot-gold"></span>
+
+                        <span>
+                            Gold Price Trend (24K)
+                        </span>
+
+                    </div>
+
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot dot-silver"></span>
+
+                        <span>
+                            Silver Price Trend (999)
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 CALCULATOR
+            ================================================== -->
+
+            <section class="card calculator-card">
+
+
+                <div style="margin-bottom:24px;">
 
                     <h2>
-                        📈 Price Trend
+                        🧮 Gold & Silver Price Calculator
                     </h2>
 
-                    <p>
-                        Last 10 price updates
+                    <p
+                        style="font-size:13px;color:var(--text-muted);margin-top:4px;"
+                    >
+                        Enter your metal weight, purity grade,
+                        and optional taxes to calculate the exact
+                        price instantly
                     </p>
 
                 </div>
 
-                <div class="chart-status">
-                    ● Live Movement
+
+
+                <div class="calc-grid">
+
+
+                    <!-- CALCULATOR FORM -->
+
+                    <div>
+
+
+                        <!-- WEIGHT -->
+
+                        <div class="form-group">
+
+                            <label for="gold-weight">
+                                Weight Amount
+                            </label>
+
+
+                            <div class="input-wrapper">
+
+                                <input
+                                    type="number"
+                                    id="gold-weight"
+                                    class="form-control"
+                                    placeholder="e.g. 10"
+                                    min="0.01"
+                                    step="0.01"
+                                    value="10"
+                                    autocomplete="off"
+                                >
+
+
+                                <select
+                                    id="weight-unit"
+                                    class="unit-select"
+                                    title="Choose Weight Unit"
+                                >
+
+                                    <option value="gram">
+                                        Grams (g)
+                                    </option>
+
+                                    <option value="pavan">
+                                        Sovereign / Pavan (8 Grams)
+                                    </option>
+
+                                    <option value="tola">
+                                        Tola (11.66 Grams)
+                                    </option>
+
+                                    <option value="oz">
+                                        Troy Ounce (31.1 Grams)
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- METAL TYPE -->
+
+                        <div class="form-group">
+
+                            <label for="gold-type">
+                                Metal & Purity Grade
+                            </label>
+
+
+                            <select
+                                id="gold-type"
+                                class="form-control"
+                            >
+
+                                <option value="24">
+                                    24K Gold (99.9% Pure Gold)
+                                </option>
+
+                                <option
+                                    value="22"
+                                    selected
+                                >
+                                    22K Gold (91.6% Jewelry Gold)
+                                </option>
+
+                                <option value="18">
+                                    18K Gold (75.0% Standard Gold)
+                                </option>
+
+                                <option value="silver">
+                                    Pure Silver (99.9% Fine Silver)
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+
+                        <!-- TAXES -->
+
+                        <div class="form-group">
+
+                            <label>
+                                Optional Tax & Charges
+                            </label>
+
+
+                            <div class="tax-toggle-group">
+
+
+                                <label class="checkbox-label">
+
+                                    <input
+                                        type="checkbox"
+                                        id="include-gst"
+                                        checked
+                                    >
+
+                                    <span>
+                                        Include 3% GST Tax
+                                    </span>
+
+                                </label>
+
+
+                                <label class="checkbox-label">
+
+                                    <input
+                                        type="checkbox"
+                                        id="include-making"
+                                    >
+
+                                    <span>
+                                        Include 5% Making Charge
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- CALCULATE BUTTON -->
+
+                        <button
+                            id="calculate-btn"
+                            class="action-btn btn-gold"
+                            type="button"
+                            style="margin-top:8px;"
+                        >
+
+                            <span>
+                                🧮 Calculate Total Metal Value
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- CALCULATOR RESULT -->
+
+                    <div class="calc-result-box">
+
+
+                        <h3>
+                            Estimated Total Value
+                        </h3>
+
+
+                        <div
+                            id="calculated-price"
+                            class="calc-result-amount"
+                        >
+                            ₹ 0.00
+                        </div>
+
+
+                        <div
+                            id="calc-breakdown"
+                            class="calc-result-breakdown"
+                        >
+                            Base Metal: ₹ 0.00 |
+                            Extra Charges: ₹ 0.00
+                        </div>
+
+
+                        <div class="asset-scale-preview">
+
+                            <span>
+                                📦 3D Weight Preview:
+                            </span>
+
+                            <strong id="asset-scale-text">
+                                10 Grams
+                            </strong>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-            </div>
+            </section>
 
 
-            <!-- Chart Container -->
 
-            <div class="chart-container">
+            <!-- =================================================
+                 STATUS
+            ================================================== -->
 
-                <canvas
-                    id="priceChart"
-                ></canvas>
+            <section class="card status-card">
 
 
-                <!-- Hover Tooltip -->
+                <div class="status-icon">
+                    📊
+                </div>
 
-                <div
-                    id="chart-tooltip"
-                    class="chart-tooltip"
-                ></div>
 
-            </div>
+                <div class="status-info">
 
+                    <h3>
+                        Real-time Market Connection Status
+                    </h3>
 
-            <!-- Chart Legend -->
+                    <p id="last-updated">
+                        Last Updated: Syncing live prices...
+                    </p>
 
-            <div class="chart-legend">
+                </div>
 
-                <span class="gold-legend">
-                    <i></i>
-                    Gold
-                </span>
+            </section>
 
-                <span class="silver-legend">
-                    <i></i>
-                    Silver
-                </span>
 
-            </div>
+        </main>
 
-        </section>
 
 
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
 
-        <!-- ==================================================
-             GOLD CALCULATOR
-        =================================================== -->
+        <footer class="site-footer">
 
-        <section
-            class="card calculator-card"
-        >
+            <p>
+                © 2026 GoldTrack 3D Price Tracker.
+                All Rights Reserved.
+            </p>
 
-            <div class="calculator-header">
+            <p class="footer-subtitle">
+                Easy live gold and silver price tracking
+                with interactive 3D visualizer
+            </p>
 
-                <h2>
-                    🧮 Gold Calculator
-                </h2>
+        </footer>
 
-                <p>
-                    Calculate estimated gold value
-                </p>
 
-            </div>
+    </div>
 
 
-            <!-- Weight -->
 
-            <div class="form-group">
+    <!-- =====================================================
+         APPLICATION JAVASCRIPT
+         
+         IMPORTANT:
+         BACKEND_API_URL is NOT declared here.
+         It is declared only once inside script.js.
+    ====================================================== -->
 
-                <label
-                    for="gold-weight"
-                >
-                    Weight (grams)
-                </label>
-
-                <input
-                    type="number"
-                    id="gold-weight"
-                    placeholder="Enter weight"
-                    min="0"
-                    step="0.01"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <!-- Gold Type -->
-
-            <div class="form-group">
-
-                <label
-                    for="gold-type"
-                >
-                    Gold Type
-                </label>
-
-                <select
-                    id="gold-type"
-                >
-
-                    <option value="24">
-                        24K Gold
-                    </option>
-
-                    <option value="22">
-                        22K Gold
-                    </option>
-
-                    <option value="18">
-                        18K Gold
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- Calculate -->
-
-            <button
-                id="calculate-btn"
-                type="button"
-            >
-                🧮 Calculate Price
-            </button>
-
-
-            <!-- Result -->
-
-            <div class="calculator-result">
-
-                <h3>
-                    Estimated Price
-                </h3>
-
-                <p id="calculated-price">
-                    ₹ 0.00
-                </p>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- ==================================================
-             STATUS
-        =================================================== -->
-
-        <section
-            class="card status-card"
-        >
-
-            <div class="status-icon">
-                📊
-            </div>
-
-            <div>
-
-                <h3>
-                    Status
-                </h3>
-
-                <p id="last-updated">
-                    Last Updated: --
-                </p>
-
-            </div>
-
-        </section>
-
-
-    </main>
-
-
-
-    <!-- ==================================================
-         FOOTER
-    =================================================== -->
-
-    <footer class="site-footer">
-
-        <p>
-            © 2026 GoldTrack. All Rights Reserved.
-        </p>
-
-        <p class="footer-subtitle">
-            Live market tracking dashboard
-        </p>
-
-    </footer>
-
-
-
-    <!-- ==================================================
-         JAVASCRIPT
-    =================================================== -->
-
-    <script
-        src="js/script.js"
-    ></script>
+    <script src="js/script.js"></script>
 
 
 </body>
