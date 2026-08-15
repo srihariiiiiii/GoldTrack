@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 
@@ -12,17 +13,31 @@ app.use(express.json());
    FRONTEND
 ========================================= */
 
-// Works both locally and on Render/cloud servers
-const CLIENT_PATH = path.resolve(process.cwd(), "client");
+// Try multiple possible paths for Render + local compatibility
+const possiblePaths = [
+    path.resolve(process.cwd(), "client"),          // Render: /opt/render/project/src/client
+    path.join(__dirname, "../client"),               // Local: server/../client
+    path.resolve(__dirname, "../client"),            // Fallback absolute
+];
 
-console.log("📁 Serving client from:", CLIENT_PATH);
+const CLIENT_PATH = possiblePaths.find(p => fs.existsSync(p)) || possiblePaths[0];
+
+console.log("📁 __dirname:", __dirname);
+console.log("📁 process.cwd():", process.cwd());
+console.log("📁 CLIENT_PATH resolved:", CLIENT_PATH);
+console.log("📁 CLIENT_PATH exists:", fs.existsSync(CLIENT_PATH));
 
 app.use(express.static(CLIENT_PATH));
 
-app.get("/", (req, res) => {
-    res.sendFile(
-        path.join(CLIENT_PATH, "index.html")
-    );
+// Serve index.html for root and all unmatched routes (SPA support)
+app.get("*", (req, res) => {
+    const indexPath = path.join(CLIENT_PATH, "index.html");
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        console.error("❌ index.html not found at:", indexPath);
+        res.status(500).send(`Server error: Cannot find index.html at ${indexPath}`);
+    }
 });
 
 
